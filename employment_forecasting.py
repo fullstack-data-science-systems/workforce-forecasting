@@ -16,14 +16,14 @@ for the period 2020-2025, predicting four key metrics per province:
 # SECTION 1: IMPORTS AND SETUP
 # ============================================================================
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import os
 import warnings
 from datetime import datetime
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+# Configure TensorFlow runtime flags before importing tensorflow.
+os.environ.setdefault('TF_ENABLE_ONEDNN_OPTS', '0')
+os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', '2')
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Sequential, Model
@@ -32,6 +32,12 @@ from tensorflow.keras.layers import (LSTM, GRU, Dense, Dropout, Input, Bidirecti
                                      MaxPooling1D, Flatten)
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pickle
