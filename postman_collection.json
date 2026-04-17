@@ -1,0 +1,201 @@
+{
+  "info": {
+    "name": "Employment Rate Forecasting API",
+    "description": "Complete Postman collection for the Employment Rate Forecasting API.\nIncludes all endpoints with example requests and test scripts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "model_type", "value": "lstm", "type": "string" },
+    { "key": "steps", "value": "12", "type": "string" },
+    { "key": "province", "value": "Ontario", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health & Info",
+      "item": [
+        {
+          "name": "GET / - Root",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/", "host": ["{{base_url}}"], "path": [""] }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has message', () => { const b = pm.response.json(); pm.expect(b).to.have.property('message'); });"
+            ], "type": "text/javascript" }}
+          ]
+        },
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Status healthy', () => { const b = pm.response.json(); pm.expect(b.status).to.eql('healthy'); });",
+              "pm.test('Has models_loaded', () => { const b = pm.response.json(); pm.expect(b).to.have.property('models_loaded'); });"
+            ], "type": "text/javascript" }}
+          ]
+        },
+        {
+          "name": "GET /models",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/models", "host": ["{{base_url}}"], "path": ["models"] }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has available_models', () => { const b = pm.response.json(); pm.expect(b).to.have.property('available_models'); });"
+            ], "type": "text/javascript" }}
+          ]
+        },
+        {
+          "name": "GET /models/lstm",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/models/{{model_type}}", "host": ["{{base_url}}"], "path": ["models", "{{model_type}}"] }
+          }
+        },
+        {
+          "name": "GET /provinces",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/provinces", "host": ["{{base_url}}"], "path": ["provinces"] }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has 10 provinces', () => { const b = pm.response.json(); pm.expect(b.count).to.eql(10); });"
+            ], "type": "text/javascript" }}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Forecasting",
+      "item": [
+        {
+          "name": "POST /forecast - LSTM 12 months",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/forecast", "host": ["{{base_url}}"], "path": ["forecast"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model_type\": \"lstm\",\n  \"steps\": 12\n}"
+            }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has forecast array', () => { const b = pm.response.json(); pm.expect(b.forecast).to.be.an('array'); });",
+              "pm.test('Forecast length = steps', () => { const b = pm.response.json(); pm.expect(b.forecast.length).to.eql(12); });"
+            ], "type": "text/javascript" }}
+          ]
+        },
+        {
+          "name": "POST /forecast - GRU Ontario 6 months",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/forecast", "host": ["{{base_url}}"], "path": ["forecast"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model_type\": \"gru\",\n  \"steps\": 6,\n  \"province\": \"Ontario\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /forecast - CNN 24 months",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/forecast", "host": ["{{base_url}}"], "path": ["forecast"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model_type\": \"cnn\",\n  \"steps\": 24\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /forecast/lstm?steps=6&province=Ontario",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/forecast/lstm?steps=6&province=Ontario",
+              "host": ["{{base_url}}"],
+              "path": ["forecast", "lstm"],
+              "query": [
+                { "key": "steps", "value": "6" },
+                { "key": "province", "value": "Ontario" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /predict - Single Step",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/predict", "host": ["{{base_url}}"], "path": ["predict"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model_type\": \"lstm\",\n  \"input_data\": [[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5]]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "POST /forecast - Invalid model (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/forecast", "host": ["{{base_url}}"], "path": ["forecast"] },
+            "body": { "mode": "raw", "raw": "{\n  \"model_type\": \"bert\",\n  \"steps\": 12\n}" }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Returns 422 for invalid model', () => pm.response.to.have.status(422));"
+            ], "type": "text/javascript" }}
+          ]
+        },
+        {
+          "name": "POST /forecast - Steps out of range (422)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/forecast", "host": ["{{base_url}}"], "path": ["forecast"] },
+            "body": { "mode": "raw", "raw": "{\n  \"model_type\": \"lstm\",\n  \"steps\": 999\n}" }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Returns 422 for invalid steps', () => pm.response.to.have.status(422));"
+            ], "type": "text/javascript" }}
+          ]
+        },
+        {
+          "name": "GET /models/invalid - 404",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/models/bert", "host": ["{{base_url}}"], "path": ["models", "bert"] }
+          },
+          "event": [
+            { "listen": "test", "script": { "exec": [
+              "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+            ], "type": "text/javascript" }}
+          ]
+        }
+      ]
+    }
+  ]
+}
