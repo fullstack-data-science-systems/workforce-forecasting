@@ -4,8 +4,9 @@ Serves LSTM, GRU, and CNN models for Canadian employment rate forecasting.
 """
 
 from fastapi import FastAPI, HTTPException, Query, Path
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any
 import numpy as np
@@ -43,6 +44,48 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─────────────────────────────────────────────
+# Frontend serving setup
+# ─────────────────────────────────────────────
+# Get the absolute path of the directory this file is in
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+INDEX_FILE = os.path.join(FRONTEND_DIR, "index.html")
+
+# Log frontend setup for debugging
+logger.info(f"Frontend directory: {FRONTEND_DIR}")
+logger.info(f"Index file: {INDEX_FILE}")
+logger.info(f"Frontend directory exists: {os.path.exists(FRONTEND_DIR)}")
+logger.info(f"Index file exists: {os.path.exists(INDEX_FILE)}")
+
+# Serve static files (CSS, JS, images)
+if os.path.exists(FRONTEND_DIR):
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+    logger.info("Static files mounted at /static")
+else:
+    logger.warning("Frontend directory not found - static files not mounted")
+
+# ─────────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────────
+
+# Serve frontend homepage
+@app.get("/")
+def serve_frontend():
+    """Serve the frontend homepage."""
+    if os.path.exists(INDEX_FILE):
+        logger.info(f"Serving frontend from: {INDEX_FILE}")
+        return FileResponse(INDEX_FILE)
+    logger.error(f"Frontend index file not found at: {INDEX_FILE}")
+    return {
+        "error": "Frontend not found",
+        "checked_path": INDEX_FILE,
+        "current_workdir": os.getcwd(),
+        "base_dir": BASE_DIR,
+        "frontend_dir_exists": os.path.exists(FRONTEND_DIR),
+        "index_file_exists": os.path.exists(INDEX_FILE)
+    }
 
 # ─────────────────────────────────────────────
 # Pydantic schemas
