@@ -1,0 +1,21 @@
+# Core numerical stack
+numpy==1.26.4
+pandas==2.2.2
+
+# Visualization
+matplotlib==3.8.4
+seaborn==0.13.2
+plotly==5.24.1
+
+# Machine Learning
+scikit-learn==1.4.2
+
+# API Framework
+fastapi==0.115.12
+
+# Deep Learning
+tensorflow==2.16.1
+optree==0.13.1
+
+# API Server
+uvicorn==0.30.6
